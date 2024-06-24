@@ -49,15 +49,14 @@ impl Grid {
         Self(BTreeMap::new())
     }
 
-    fn all_positions() -> Vec<(usize, usize)> {
-        (0..4).flat_map(|r| repeat(r).zip(0..4)).collect()
+    fn all_positions() -> impl Iterator<Item = (usize, usize)> {
+        (0..4).flat_map(|r| repeat(r).zip(0..4))
     }
 
-    fn remaining_positions(&self) -> Vec<(usize, usize)> {
+    fn remaining_positions(&self) -> impl Iterator<Item = (usize, usize)> + '_ {
         Self::all_positions()
             .into_iter()
             .filter(|pos| !self.0.contains_key(pos))
-            .collect()
     }
 
     fn above(&self, (r, c): (usize, usize)) -> Option<&Block> {
@@ -76,7 +75,7 @@ impl Grid {
         c.checked_sub(1).and_then(|cc| self.0.get(&(r, cc)))
     }
 
-    fn try_place(&self, block: Block, pos: (usize, usize)) -> Option<Self> {
+    fn try_place(&self, block: &Block, pos: (usize, usize)) -> Option<Self> {
         (!self.0.contains_key(&pos)
             && self.above(pos).map_or(true, |a| a.above(&block))
             && self.right(pos).map_or(true, |r| block.left_of(r))
@@ -84,7 +83,7 @@ impl Grid {
             && self.left(pos).map_or(true, |l| l.left_of(&block)))
         .then(|| {
             let mut new = self.clone();
-            new.0.insert(pos, block);
+            new.0.insert(pos, block.clone());
             new
         })
     }
@@ -111,4 +110,18 @@ fn main() {
         Block::new(Purple, Orange, Yellow, LightGreen),
     ];
     let grid = Grid::new();
+    let res = search(&blocks, &grid).unwrap();
+    println!("{res:?}");
+}
+
+fn search(blocks: &[Block], grid: &Grid) -> Option<Vec<(usize, usize)>> {
+    let Some((block, blocks)) = blocks.split_first() else {
+        return Some(vec![]);
+    };
+    grid.remaining_positions().find_map(|pos| {
+        let grid = grid.try_place(block, pos)?;
+        let mut res = search(blocks, &grid)?;
+        res.insert(0, pos);
+        Some(res)
+    })
 }
