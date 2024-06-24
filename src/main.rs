@@ -1,3 +1,4 @@
+use clap::Parser;
 use std::{collections::BTreeMap, iter::repeat};
 
 #[derive(PartialEq, Eq, Clone)]
@@ -12,6 +13,7 @@ enum Color {
     White,
     DarkGreen,
     LightGreen,
+    Brown,
 }
 
 #[derive(Clone)]
@@ -89,26 +91,58 @@ impl Grid {
     }
 }
 
+#[derive(Parser)]
+enum Puzzle {
+    Three,
+    Four,
+}
+
+impl Puzzle {
+    fn blocks(&self) -> Vec<Block> {
+        use Color::*;
+        match self {
+            Self::Three => vec![
+                Block::new(LightGreen, Pink, Turquoise, Red),
+                Block::new(Purple, DarkGreen, Pink, Purple),
+                Block::new(Orange, Purple, Turquoise, Yellow),
+                Block::new(Blue, Purple, Blue, Turquoise),
+                Block::new(Yellow, Brown, Red, Orange),
+                Block::new(Turquoise, Orange, DarkGreen, Turquoise),
+                Block::new(White, Red, Pink, LightGreen),
+                Block::new(DarkGreen, Turquoise, Blue, Pink),
+                Block::new(Brown, Red, Brown, Pink),
+                Block::new(Blue, DarkGreen, Yellow, Purple),
+                Block::new(Purple, Turquoise, LightGreen, Blue),
+                Block::new(Turquoise, Turquoise, Red, LightGreen),
+                Block::new(Pink, LightGreen, DarkGreen, Yellow),
+                Block::new(Brown, Blue, White, Orange),
+                Block::new(Red, White, Purple, Turquoise),
+                Block::new(Orange, Yellow, Purple, Red),
+            ],
+            Self::Four => vec![
+                Block::new(Red, Red, Orange, Purple),
+                Block::new(Red, DarkGreen, Yellow, Orange),
+                Block::new(Orange, Turquoise, Pink, Red),
+                Block::new(Yellow, Blue, Red, Orange),
+                Block::new(Pink, Pink, LightGreen, Yellow),
+                Block::new(Red, Red, Turquoise, Purple),
+                Block::new(LightGreen, LightGreen, Turquoise, Red),
+                Block::new(Turquoise, Orange, Blue, Orange),
+                Block::new(Blue, Purple, White, Yellow),
+                Block::new(Purple, Orange, Yellow, Red),
+                Block::new(White, Red, Orange, Turquoise),
+                Block::new(Yellow, Orange, DarkGreen, Turquoise),
+                Block::new(Orange, Yellow, Yellow, Pink),
+                Block::new(DarkGreen, Purple, Purple, Pink),
+                Block::new(Yellow, Red, Orange, White),
+                Block::new(Purple, Orange, Yellow, LightGreen),
+            ],
+        }
+    }
+}
+
 fn main() {
-    use Color::*;
-    let blocks = vec![
-        Block::new(Red, Red, Orange, Purple),
-        Block::new(Red, DarkGreen, Yellow, Orange),
-        Block::new(Orange, Turquoise, Pink, Red),
-        Block::new(Yellow, Blue, Red, Orange),
-        Block::new(Pink, Pink, LightGreen, Yellow),
-        Block::new(Red, Red, Turquoise, Purple),
-        Block::new(LightGreen, LightGreen, Turquoise, Red),
-        Block::new(Turquoise, Orange, Blue, Orange),
-        Block::new(Blue, Purple, White, Yellow),
-        Block::new(Purple, Orange, Yellow, Red),
-        Block::new(White, Red, Orange, Turquoise),
-        Block::new(Yellow, Orange, DarkGreen, Turquoise),
-        Block::new(Orange, Yellow, Yellow, Pink),
-        Block::new(DarkGreen, Purple, Purple, Pink),
-        Block::new(Yellow, Red, Orange, White),
-        Block::new(Purple, Orange, Yellow, LightGreen),
-    ];
+    let blocks = Puzzle::parse().blocks();
     let grid = Grid::new();
     let res = search(&blocks, &grid).unwrap();
     println!("{res:?}");
